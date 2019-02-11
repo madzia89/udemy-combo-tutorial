@@ -1,6 +1,5 @@
 //posty użytkowników i ich komentarze
 
-
 const express = require('express');
 const router = express.Router();
 

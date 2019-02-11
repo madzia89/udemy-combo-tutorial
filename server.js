@@ -16,7 +16,6 @@ mongoose.connect(db, {useNewUrlParser: true})
     .then(() => console.log('MongoDb connected'))
     .catch(err => console.log(err));
 
-
 app.use('/api/users', users);
 app.use('/api/profile', profile);
 app.use('/api/posts', posts);
