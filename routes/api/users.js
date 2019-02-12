@@ -6,6 +6,7 @@ const gravatar = require('gravatar');
 const bcrypt = require('bcryptjs'); //it's to encrypt the password
 const jwt = require('jsonwebtoken');
 const keys = require('../../config/keys');
+const passport = require('passport');
 
 const User = require('../../models/User');
 
@@ -77,7 +78,7 @@ router.post('/login', (req, res) => {
                 .then(isMatch => {
                     if (isMatch) {
                         //User Matched
-                        const payload = {is: user.id, name: user.name, avatar: user.avatar}; //create jwt payload
+                        const payload = {id: user.id, name: user.name, avatar: user.avatar}; //create jwt payload
 
                         // Sign token
                         jwt.sign(payload, keys.secretOrKey, {expiresIn: 3600},
@@ -92,6 +93,18 @@ router.post('/login', (req, res) => {
                     }
                 })
         })
+});
+
+
+//@route GET api/users/current
+//@descReturn current user
+//@access Private
+router.get('/current', passport.authenticate('jwt', {session: false}), (req, res) => {
+    res.json({
+        id: req.user.id,
+        name: req.user.name,
+        email: req.user.email
+    })
 });
 
 
