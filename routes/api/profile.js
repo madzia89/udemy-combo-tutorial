@@ -36,4 +36,84 @@ router.get('/', passport.authenticate('jwt', {session: false}), (req, res) => {
         .catch(err => res.status(404).json(err));
 });
 
+
+//@route POST api/profile
+//@desc Create user profile
+//@access Private
+router.post('/', passport.authenticate('jwt', {session: false}), (req, res) => {
+    //Get fields
+    const profileFields = {};
+    // z req.user.id pobierane jest imię, avatar i email bo ustaliliśmy że to jest przechowywane w tokenie
+    profileFields.user = req.user.id;
+    if (req.body.handle) {
+        profileFields.handle = req.body.handle;
+    }
+    if (req.body.company) {
+        profileFields.company = req.body.company;
+    }
+    if (req.body.website) {
+        profileFields.website = req.body.website;
+    }
+    if (req.body.location) {
+        profileFields.location = req.body.location;
+    }
+    if (req.body.bio) {
+        profileFields.bio = req.body.bio;
+    }
+    if (req.body.ststus) {
+        profileFields.ststus = req.body.ststus;
+    }
+    if (req.body.githubUserName) {
+        profileFields.githubUserName = req.body.githubUserName;
+    }
+    //Skills - split into array
+    if (typeof req.body.githubUserName !== 'undefined') {
+        // this way we'll get array of skillss
+        profileFields.skills = req.body.skills.split(',');
+    }
+    // Social
+    // first create or edit social then add what we need
+    profileFields.social = {};
+    if (req.body.youtube) {
+        profileFields.social.youtube = req.body.youtube;
+    }
+    if (req.body.twitter) {
+        profileFields.social.twitter = req.body.twitter;
+    }
+    if (req.body.facebook) {
+        profileFields.social.facebook = req.body.facebook;
+    }
+    if (req.body.linkedin) {
+        profileFields.social.linkedin = req.body.linkedin;
+    }
+    if (req.body.twitter) {
+        profileFields.social.twitter = req.body.twitter;
+    }
+    //chcemy znaleźć usera po req.user.id
+    Profile.findOne({user: req.user.id})
+        .then(profile => {
+            if (profile) {
+                //jeżeli profil istnieje to chcemy go edytować a nie tworzyć
+                Profile.findOneAndUpdate({user: req.user.id}, {$set: profileFields}, {new: true})
+                    .then(profile => res.json(profile));
+            } else {
+                // jeżeli nie ma profilu to chcemy go utworzyć.
+                // najpierw sprawdzamy czy istnieje handle
+                // handle odpowiada za dostęp do profilu w przyjzany sposób? :D
+                Profile.findOne({handle: profileFields.handle})
+                    .then(profile => {
+                        if (profile) {
+                            errors.handle = 'That handle already exists';
+                            res.status(400).json(errors);
+                        }
+
+                        //save profile
+                        new Profile(profileFields).save().then(profile => res.json(profile))
+                    })
+            }
+
+        })
+});
+
+
 module.exports = router;
