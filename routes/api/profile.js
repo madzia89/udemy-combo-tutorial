@@ -5,6 +5,9 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const passport = require('passport');
 
+// Load Validation
+const validateProfileInput = require('../../validation/profile');
+
 // Load Profile Model
 const Profile = require('../../models/Profile');
 
@@ -26,6 +29,8 @@ router.get('/', passport.authenticate('jwt', {session: false}), (req, res) => {
     //fetch current user profile
     // klucz poniżej w findOne odniesie się do User z Profile.js
     Profile.findOne({user: req.user.id})
+        //populate => w ten sposób z użytkownika pobieramy name i avatar aby wysłać je w zwrotce do profilu
+        .populate('user', ['name', 'avatar'])
         .then(profile => {
             if (!profile) {
                 errors.noprofile = 'There is no profile for this user';
@@ -41,6 +46,15 @@ router.get('/', passport.authenticate('jwt', {session: false}), (req, res) => {
 //@desc Create user profile
 //@access Private
 router.post('/', passport.authenticate('jwt', {session: false}), (req, res) => {
+
+    const {errors, isValid} = validateProfileInput(req.body);
+
+    //check validation
+    if(!isValid){
+        // return any errors with 400
+        return res.status(400).json(errors)
+    }
+
     //Get fields
     const profileFields = {};
     // z req.user.id pobierane jest imię, avatar i email bo ustaliliśmy że to jest przechowywane w tokenie
@@ -60,11 +74,11 @@ router.post('/', passport.authenticate('jwt', {session: false}), (req, res) => {
     if (req.body.bio) {
         profileFields.bio = req.body.bio;
     }
-    if (req.body.ststus) {
-        profileFields.ststus = req.body.ststus;
+    if (req.body.status) {
+        profileFields.status = req.body.status;
     }
-    if (req.body.githubUserName) {
-        profileFields.githubUserName = req.body.githubUserName;
+    if (req.body.skills) {
+        profileFields.skills = req.body.skills;
     }
     //Skills - split into array
     if (typeof req.body.githubUserName !== 'undefined') {
