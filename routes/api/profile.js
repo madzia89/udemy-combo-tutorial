@@ -29,7 +29,7 @@ router.get('/', passport.authenticate('jwt', {session: false}), (req, res) => {
     //fetch current user profile
     // klucz poniżej w findOne odniesie się do User z Profile.js
     Profile.findOne({user: req.user.id})
-        //populate => w ten sposób z użytkownika pobieramy name i avatar aby wysłać je w zwrotce do profilu
+    //populate => w ten sposób z użytkownika pobieramy name i avatar aby wysłać je w zwrotce do profilu
         .populate('user', ['name', 'avatar'])
         .then(profile => {
             if (!profile) {
@@ -42,6 +42,58 @@ router.get('/', passport.authenticate('jwt', {session: false}), (req, res) => {
 });
 
 
+//@route GET api/profile/handle/:handle
+//@desc Get profile by handle
+//@access Public
+router.get('/handle/:handle', (req, res) => {
+    const errors = {};
+    Profile.findOne({handle: req.params.handle})
+        .populate('user', ['name', 'avatar'])
+        .then(profile => {
+            if (!profile) {
+                errors.noprofile = 'There is no profile for this user';
+                res.status(404).json(errors);
+            }
+            res.status(200).json(profile);
+        })
+        .catch(err => res.status(404).json({profile: 'There is no profile for this user'}));
+});
+
+//@route GET api/profile/user/:user_id
+//@desc Get profile by user_id
+//@access Public
+router.get('/user/:user_id', (req, res) => {
+    const errors = {};
+    Profile.findOne({user: req.params.user_id})
+        .populate('user', ['name', 'avatar'])
+        .then(profile => {
+            if (!profile) {
+                errors.noprofile = 'There is no profile for this user';
+                res.status(404).json(errors);
+            }
+            res.status(200).json(profile);
+        })
+        .catch(err => res.status(404).json({profile: 'There is no profile for this user'}));
+});
+
+//@route GET api/profile/all
+//@desc Get all profiles
+//@access Public
+router.get('/all', (req, res) => {
+    const errors = {};
+    Profile.find()
+        .populate('user', ['name', 'avatar'])
+        .then(profiles => {
+            if (!profiles) {
+                errors.noprofile = 'There are no profiles';
+                return res.status(404).json(errors);
+            }
+            res.json(profiles);
+        })
+        .catch(err => res.status(404).json({profile: 'There are no profiles'}))
+});
+
+
 //@route POST api/profile
 //@desc Create user profile
 //@access Private
@@ -50,7 +102,7 @@ router.post('/', passport.authenticate('jwt', {session: false}), (req, res) => {
     const {errors, isValid} = validateProfileInput(req.body);
 
     //check validation
-    if(!isValid){
+    if (!isValid) {
         // return any errors with 400
         return res.status(400).json(errors)
     }
