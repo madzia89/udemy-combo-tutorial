@@ -129,13 +129,12 @@ router.post('/', passport.authenticate('jwt', {session: false}), (req, res) => {
     if (req.body.status) {
         profileFields.status = req.body.status;
     }
-    if (req.body.skills) {
-        profileFields.skills = req.body.skills;
+    if (typeof req.body.skills  !== 'undefined') {
+        //Skills - split into array
+        profileFields.skills = req.body.skills.split(',')
     }
-    //Skills - split into array
-    if (typeof req.body.githubUserName !== 'undefined') {
-        // this way we'll get array of skillss
-        profileFields.skills = req.body.skills.split(',');
+    if (req.body.githubusername) {
+        profileFields.githubusername = req.body.githubusername;
     }
     // Social
     // first create or edit social then add what we need
