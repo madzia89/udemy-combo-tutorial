@@ -65,7 +65,7 @@ router.post('/', passport.authenticate('jwt', {session: false}), (req, res) => {
 
 //@route DELETE api/posts/:id
 //@desc Delete post by id
-//Private
+//@access Private
 router.delete('/:id', passport.authenticate('jwt', {session: false}), (req, res) => {
     //tylko właściciel postu może usuwać posty
     Profile.findOne({user: req.user.id})
@@ -74,13 +74,68 @@ router.delete('/:id', passport.authenticate('jwt', {session: false}), (req, res)
                 .then(post => {
                     //sprawdź właściciela postu
                     if (post.user.toString() !== req.user.id) {
-                        return res.status(401).json({notauthorized: 'User not authorized to remove post'})
+                        return res.status(401).json({notAuthorized: 'User not authorized to remove post'})
                     }
                     //DELETE
                     Post.deleteOne().then(() => res.json({success: true}))
                 })
-                .catch(err => res.status(404).json({postnotfound: 'Post not found'}))
+                .catch(err => res.status(404).json({postNotFound: 'Post not found'}))
         })
 });
+
+
+//@route POST api/posts/like/:id
+//@desc Like post by post id
+//@access Private
+router.post('/like/:id', passport.authenticate('jwt', {session: false}), (req, res) => {
+    //tylko właściciel postu może usuwać posty
+    Profile.findOne({user: req.user.id})
+        .then(profile => {
+            Post.findById(req.params.id)
+                .then(post => {
+                    // sprawdzamy czy w liście lajków jest użytkownik który wysyła zapytanie
+                    const isLiked = post.likes.filter(like => like.user.toString() === req.user.id).length > 0
+                    if (isLiked) {
+                        return res.status(400).json({alreadyLiked: 'User already likes this post'});
+                    }
+
+                    //Add user id to like array
+                    post.likes.unshift({user: req.user.id});
+                    post.save().then(post => res.json(post))
+                })
+                .catch(err => res.status(404).json({postNotFound: 'Post not found'}))
+        })
+});
+
+//@route POST api/posts/unlike/:id
+//@desc Dislike post by post id
+//@access Private
+router.post('/unlike/:id', passport.authenticate('jwt', {session: false}), (req, res) => {
+    //tylko właściciel postu może usuwać posty
+    Profile.findOne({user: req.user.id})
+        .then(profile => {
+            Post.findById(req.params.id)
+                .then(post => {
+                    // sprawdzamy czy w liście lajków jest użytkownik który wysyła zapytanie
+                    const isLiked = post.likes.filter(like => like.user.toString() === req.user.id).length === 0
+                    if (isLiked) {
+                        // for the future: do unlike button
+                        return res.status(400).json({notLiked: 'User haas not liked it yet'});
+                    }
+
+                    //Get remove index
+                    const removeIndex = post.likes
+                        .map(item => item.user.toString())
+                        .indexOf(req.user.id);
+
+                    //Splice out of array
+                    post.likes.splice(removeIndex, 1)
+
+                    post.save().then(post => res.json(post))
+                })
+                .catch(err => res.status(404).json({postNotFound: 'Post not found'}))
+        })
+});
+
 
 module.exports = router;
