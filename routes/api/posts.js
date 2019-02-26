@@ -17,6 +17,27 @@ const validatePostInput = require('../../validation/post');
 router.get('/test', (req, res) => res.json({msg: "Posts works"}));
 
 //@route GET api/posts
+//@desc Get post by id
+//@access Public
+router.get('/:id', (req, res) => {
+    Post.findById(req.params.id)
+        .then(post => res.json(post))
+        .catch(err => res.status(404).json({posts: 'post not found'}))
+});
+
+//@route GET api/posts/:id
+//@desc Get all posts
+//@access Public
+router.get('/', (req, res) => {
+    Post.find()
+    //sort posts by date
+        .sort({date: -1})
+        .then(posts => res.json(posts))
+        .catch(err => res.status(404).json({posts: 'posts not found'}))
+});
+
+
+//@route GET api/posts
 //@desc Create Post
 //@access Private
 router.post('/', passport.authenticate('jwt', {session: false}), (req, res) => {
