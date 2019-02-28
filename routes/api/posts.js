@@ -94,7 +94,7 @@ router.post('/like/:id', passport.authenticate('jwt', {session: false}), (req, r
             Post.findById(req.params.id)
                 .then(post => {
                     // sprawdzamy czy w liście lajków jest użytkownik który wysyła zapytanie
-                    const isLiked = post.likes.filter(like => like.user.toString() === req.user.id).length > 0
+                    const isLiked = post.likes.filter(like => like.user.toString() === req.user.id).length > 0;
                     if (isLiked) {
                         return res.status(400).json({alreadyLiked: 'User already likes this post'});
                     }
@@ -117,7 +117,7 @@ router.post('/unlike/:id', passport.authenticate('jwt', {session: false}), (req,
             Post.findById(req.params.id)
                 .then(post => {
                     // sprawdzamy czy w liście lajków jest użytkownik który wysyła zapytanie
-                    const isLiked = post.likes.filter(like => like.user.toString() === req.user.id).length === 0
+                    const isLiked = post.likes.filter(like => like.user.toString() === req.user.id).length === 0;
                     if (isLiked) {
                         // for the future: do unlike button
                         return res.status(400).json({notLiked: 'User haas not liked it yet'});
@@ -129,7 +129,7 @@ router.post('/unlike/:id', passport.authenticate('jwt', {session: false}), (req,
                         .indexOf(req.user.id);
 
                     //Splice out of array
-                    post.likes.splice(removeIndex, 1)
+                    post.likes.splice(removeIndex, 1);
 
                     post.save().then(post => res.json(post))
                 })
@@ -137,5 +137,57 @@ router.post('/unlike/:id', passport.authenticate('jwt', {session: false}), (req,
         })
 });
 
+
+//@route POST api/posts/comment/:id
+//@desc Add comment to post (by post id)
+//@access Private
+router.post('/comment/:id', passport.authenticate('jwt', {session: false}), (req, res) => {
+    //Walidacja komentarza używa takiej samej walidacji jak post dlatego jest używany validatePostInput
+    const {errors, isValid} = validatePostInput(req.body);
+
+    if (!isValid) {
+        return res.status(400).json(errors);
+    }
+
+    Post.findById(req.params.id)
+        .then(post => {
+            const newComment = {
+                text: req.body.text,
+                name: req.body.name,
+                avatar: req.body.avatar,
+                user: req.user.id
+            };
+
+            //Add to comments array
+            post.comments.unshift(newComment);
+
+            //Save
+            post.save().then(post => res.json(post))
+        })
+        .catch(err => res.status(404).json({postNotFound: 'Post not found'}))
+});
+
+//@route DELETE api/posts/comment/:id/:comment_id
+//@desc Remove comment from post (by post and commentid)
+//@access Private
+router.delete('/comment/:id/:comment_id', passport.authenticate('jwt', {session: false}), (req, res) => {
+    Post.findById(req.params.id)
+        .then(post => {
+            const doesCommentNotExist = post.comments.filter(comment => comment.id.toString() === req.params.comment_id).length === 0
+            if (doesCommentNotExist) {
+                return res.status(404).json({commentNotExists: "Comment does not exists"})
+            }
+            // Get remove index
+            const removeIndex = post.comments
+                .map(item => item._id.toString())
+                .indexOf(req.params.comment_id);
+
+            //Splice comment out of array
+            post.comments.splice(removeIndex, 1);
+
+            post.save().then(post => res.json(post));
+        })
+        .catch(err => res.status(404).json({postNotFound: 'Post not found'}))
+});
 
 module.exports = router;
