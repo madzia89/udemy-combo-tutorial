@@ -1,4 +1,6 @@
 import React, {Component} from 'react';
+import axios from 'axios';
+import classNames from "classnames";
 
 class Login extends Component {
     state = {
@@ -11,15 +13,25 @@ class Login extends Component {
         this.setState({[event.target.name]: event.target.value});
     }
 
-    onSubmit() {
+    onSubmit(event) {
+        event.preventDefault();
+
         const user = {
             email: this.state.email,
             password: this.state.password
-        }
-        console.log(user)
+        };
+
+        axios.post('/api/users/login', user)
+            .then(result => console.log('result', result.data))
+            .catch(err => {
+                this.setState({errors: err.response.data})
+            });
     }
 
     render() {
+
+        const {errors} = this.state;
+
         return (
             <div className="login">
                 <div className="container">
@@ -27,10 +39,12 @@ class Login extends Component {
                         <div className="col-md-8 m-auto">
                             <h1 className="display-4 text-center">Log In</h1>
                             <p className="lead text-center">Sign in to your DevConnector account</p>
-                            <form onSubmit={() => this.onSubmit()}>
+                            <form noValidate onSubmit={() => this.onSubmit()}>
                                 <div className="form-group">
                                     <input type="email"
-                                           className="form-control form-control-lg"
+                                           className={classNames("form-control form-control-lg", {
+                                               'is-invalid': errors.email
+                                           })}
                                            placeholder="Email Address"
                                            name="email"
                                            value={this.state.email}
@@ -39,7 +53,9 @@ class Login extends Component {
                                 </div>
                                 <div className="form-group">
                                     <input type="password"
-                                           className="form-control form-control-lg"
+                                           className={classNames("form-control form-control-lg", {
+                                               'is-invalid': errors.password
+                                           })}
                                            placeholder="Password"
                                            name="password"
                                            value={this.state.password}
