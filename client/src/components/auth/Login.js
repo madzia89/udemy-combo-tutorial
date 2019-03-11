@@ -1,6 +1,9 @@
 import React, {Component} from 'react';
-import axios from 'axios';
 import classNames from "classnames";
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {loginUser} from "../../actions/authActions";
+import {withRouter} from "react-router-dom";
 
 class Login extends Component {
     state = {
@@ -9,6 +12,18 @@ class Login extends Component {
         errors: {}
     };
 
+    componentWillReceiveProps(nextProps, nextContext) {
+
+        if (nextProps.auth.isAuthenticated) {
+            this.props.history.push('/dashboard')
+        }
+
+
+        if (nextProps.errors) {
+            this.setState({errors: nextProps.errors});
+        }
+    }
+
     onChange(event) {
         this.setState({[event.target.name]: event.target.value});
     }
@@ -16,16 +31,12 @@ class Login extends Component {
     onSubmit(event) {
         event.preventDefault();
 
-        const user = {
+        const userData = {
             email: this.state.email,
             password: this.state.password
         };
 
-        axios.post('/api/users/login', user)
-            .then(result => console.log('result', result.data))
-            .catch(err => {
-                this.setState({errors: err.response.data})
-            });
+        this.props.loginUser(userData);
     }
 
     render() {
@@ -39,7 +50,7 @@ class Login extends Component {
                         <div className="col-md-8 m-auto">
                             <h1 className="display-4 text-center">Log In</h1>
                             <p className="lead text-center">Sign in to your DevConnector account</p>
-                            <form noValidate onSubmit={() => this.onSubmit()}>
+                            <form noValidate onSubmit={(event) => this.onSubmit(event)}>
                                 <div className="form-group">
                                     <input type="email"
                                            className={classNames("form-control form-control-lg", {
@@ -50,6 +61,8 @@ class Login extends Component {
                                            value={this.state.email}
                                            onChange={(event) => this.onChange(event)}
                                     />
+                                    {errors.email && (<div className={"invalid-feedback"}>{errors.email}</div>)}
+
                                 </div>
                                 <div className="form-group">
                                     <input type="password"
@@ -60,6 +73,8 @@ class Login extends Component {
                                            name="password"
                                            value={this.state.password}
                                            onChange={(event) => this.onChange(event)}/>
+                                    {errors.password && (<div className={"invalid-feedback"}>{errors.password}</div>)}
+
                                 </div>
                                 <input type="submit" className="btn btn-info btn-block mt-4"/>
                             </form>
@@ -71,4 +86,15 @@ class Login extends Component {
     }
 }
 
-export default Login;
+Login.propTypes = {
+    loginUser: PropTypes.func.isRequired,
+    auth: PropTypes.object.isRequired,
+    errors: PropTypes.object.isRequired
+};
+
+const mapStateToProps = state => ({
+    auth: state.auth,
+    errors: state.errors
+});
+
+export default connect(mapStateToProps, {loginUser})(withRouter(Login));

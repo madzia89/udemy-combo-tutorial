@@ -19,9 +19,8 @@ export const registerUser = (userData, history) => (dispatch) => {
 // Login - get user token
 
 export const loginUser = (userData) => (dispatch) => {
-    axios.post('/apo/users/login', userData)
+    axios.post('/api/users/login', userData)
         .then(result => {
-
             // Save to local storage
             const {token} = result.data;
             localStorage.setItem('jwtToken', token);
@@ -29,18 +28,18 @@ export const loginUser = (userData) => (dispatch) => {
             // Set token to Auth header
             setAuthToken(token);
 
-            // Decode token to get user data
+            // // Decode token to get user data
             const decoded = jwt_decode(token);
 
-            // Set current user
-            dispatach(setCurrentUser(decoded))
-
+            // // Set current user
+            dispatch(setCurrentUser(decoded))
         })
-        .catch(err =>
-            dispatch({
-                type: GET_ERRORS,
-                payload: err.response.data
-            })
+        .catch(err => {
+                dispatch({
+                    type: GET_ERRORS,
+                    payload: err.response.data
+                })
+            }
         )
 };
 
@@ -48,7 +47,7 @@ export const loginUser = (userData) => (dispatch) => {
 // Set logged in user
 export const setCurrentUser = decoded => {
     return {
-        types: SET_CURRENT_USER,
+        type: SET_CURRENT_USER,
         payload: decoded
     }
-}
+};

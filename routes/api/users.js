@@ -9,8 +9,8 @@ const keys = require('../../config/keys');
 const passport = require('passport');
 
 //load Input validation
-const validateRegisterInput  = require('../../validation/register');
-const validateLoginInput  = require('../../validation/login');
+const validateRegisterInput = require('../../validation/register');
+const validateLoginInput = require('../../validation/login');
 
 const User = require('../../models/User');
 
@@ -24,7 +24,7 @@ router.get('/test', (req, res) => res.json({msg: "Users works"}));
 //@access Public
 
 router.post('/register', (req, res) => {
-    const { errors, isValid } = validateRegisterInput(req.body);
+    const {errors, isValid} = validateRegisterInput(req.body);
     //check validation
     if (!isValid) {
         return res.status(400).json(errors)
@@ -72,7 +72,7 @@ router.post('/register', (req, res) => {
 // @access Public
 
 router.post('/login', (req, res) => {
-    const { errors, isValid } = validateLoginInput(req.body);
+    const {errors, isValid} = validateLoginInput(req.body);
     //check validation
     if (!isValid) {
         return res.status(400).json(errors)
@@ -87,7 +87,7 @@ router.post('/login', (req, res) => {
             //check for user
             if (!user) {
                 errors.email = 'User not found';
-                return res.status(404).json({email: errors})
+                return res.status(404).json(errors)
             }
 
             //Check password
@@ -100,15 +100,15 @@ router.post('/login', (req, res) => {
 
                         // Sign token
                         jwt.sign(payload, keys.secretOrKey, {expiresIn: 3600},
-                            (error, token) => {
-                            res.json({
-                                success: true,
-                                token: 'Bearer ' + token
-                            })
-                        });
+                            (errors, token) =>
+                                res.json({
+                                    success: true,
+                                    token: 'Bearer ' + token
+                                })
+                        );
                     } else {
                         errors.password = 'Password incorrect';
-                        return res.status(400).json({password: errors});
+                        return res.status(400).json(errors);
                     }
                 })
         })
