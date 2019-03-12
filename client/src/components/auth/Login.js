@@ -12,6 +12,13 @@ class Login extends Component {
         errors: {}
     };
 
+    // Prevent from access to SignUp or Login wen user is already logged in
+    componentDidMount() {
+        if(this.props.auth.isAuthenticated) {
+            this.props.history.push('/dashboard')
+        }
+    }
+
     componentWillReceiveProps(nextProps, nextContext) {
 
         if (nextProps.auth.isAuthenticated) {
