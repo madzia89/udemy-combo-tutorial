@@ -3,19 +3,28 @@ import {GET_PROFILE, GET_ERRORS, PROFILE_LOADING, CLEAR_CURRENT_PROFILE} from ".
 
 // Get current profile
 export const getCurrentProfile = () => dispatch => {
-  dispatch(setProfileLoading());
-  axios.get('/api/profile')
-      .then(response => {
-          dispatch({
-              type: GET_PROFILE,
-              payload: response.data
-          })
-      })
-      // jeżeli nie jes zwracany profile to dajemy pusty obiekt żeby przy braku jakiegokolwiek profilu możne było działac a nie segregować błędy
-      .catch(err => dispatch({
-          type: GET_PROFILE,
-          payload: {}
-      }))
+    dispatch(setProfileLoading());
+    axios.get('/api/profile')
+        .then(response => {
+            dispatch({
+                type: GET_PROFILE,
+                payload: response.data
+            })
+        })
+        // jeżeli nie jes zwracany profile to dajemy pusty obiekt żeby przy braku jakiegokolwiek profilu możne było działac a nie segregować błędy
+        .catch(err => dispatch({
+            type: GET_PROFILE,
+            payload: {}
+        }))
+};
+
+export const createCurrentProfile = (profileData, history) => dispatch => {
+    axios.post('/api//profile', profileData)
+        .then(result => history.push('/dashboard'))
+        .catch(err => dispatch({
+            type: GET_ERRORS,
+            payload: err.response.data
+        }))
 };
 
 
@@ -27,7 +36,7 @@ export const setProfileLoading = () => {
 };
 
 
-export const clearCurrentProfile= () => {
+export const clearCurrentProfile = () => {
     return {
         type: CLEAR_CURRENT_PROFILE
     }

@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 import connect from "react-redux/es/connect/connect";
 import PropTypes from 'prop-types';
-import {InputGroup, SelectListGroup, TextFieldGroup, TextAreaFieldGroup} from '../common'
+import {withRouter} from "react-router-dom";
+import {InputGroup, SelectListGroup, TextFieldGroup, TextAreaFieldGroup} from '../common';
+import {createCurrentProfile} from "../../actions/profileActions";
 
 class CreateProfile extends Component {
 
@@ -23,6 +25,11 @@ class CreateProfile extends Component {
         errors: {},
     };
 
+    componentWillReceiveProps(nextProps, nextContext) {
+        if (nextProps.errors) {
+            this.setState({errors: nextProps.errors})
+        }
+    }
 
     onChange(event) {
         event.preventDefault();
@@ -31,7 +38,24 @@ class CreateProfile extends Component {
 
     onSubmit(event) {
         event.preventDefault();
-        console.log('submit')
+
+        const profileData = {
+            handle: this.state.handle,
+            company: this.state.company,
+            website: this.state.website,
+            location: this.state.location,
+            status: this.state.status,
+            skills: this.state.skills,
+            githubusername: this.state.githubusername,
+            bio: this.state.bio,
+            twitter: this.state.twitter,
+            facebook: this.state.facebook,
+            linkedin: this.state.linkedin,
+            youtube: this.state.youtube,
+            instagram: this.state.instagram
+        }
+
+        this.props.createCurrentProfile(profileData, this.props.history)
     }
 
     render() {
@@ -126,12 +150,12 @@ class CreateProfile extends Component {
                                                  options={options}
                                 />
 
-                                <TextFieldGroup placeholder={'Company'}
+                                <TextFieldGroup placeholder={'Website'}
                                                 onChange={(event) => this.onChange(event)}
-                                                value={this.state.company}
-                                                name={'company'}
+                                                value={this.state.website}
+                                                name={'website'}
                                                 info={'A unique handle for your profile URL. Your full name, company name, nickname'}
-                                                error={errors.company}
+                                                error={errors.website}
                                 />
 
                                 <TextFieldGroup placeholder={'Company'}
@@ -175,7 +199,7 @@ class CreateProfile extends Component {
                                 />
 
                                 <div className={'mb-3'}>
-                                    <button className={'btn btn-light'} onClick={() => {
+                                    <button type={'button'} className={'btn btn-light'} onClick={() => {
                                         // below toggle button
                                         this.setState(prevState => ({
                                             displaySocialInputs: !prevState.displaySocialInputs
@@ -209,4 +233,4 @@ const mapStateToProps = state => ({
     errors: state.errors
 });
 
-export default connect(mapStateToProps, {})(CreateProfile)
+export default connect(mapStateToProps, {createCurrentProfile})(withRouter(CreateProfile));
