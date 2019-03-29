@@ -204,7 +204,7 @@ router.post('/experience', passport.authenticate('jwt', {session: false}), (req,
                 company: req.body.company,
                 location: req.body.location,
                 from: req.body.from,
-                tp: req.body.to,
+                to: req.body.to,
                 current: req.body.current,
                 description: req.body.description
             }
